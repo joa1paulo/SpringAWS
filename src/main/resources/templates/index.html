@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Produtos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #edf0f4;
+            --surface: #ffffff;
+            --ink: #162029;
+            --muted: #5b6877;
+            --line: #d5dbe3;
+            --primary: #1f4fd8;
+            --primary-dark: #173ba6;
+            --danger: #b93228;
+            --danger-soft: #fbeceb;
+            --ok: #1b7a4b;
+            --ok-soft: #e6f4ec;
+            --warn-soft: #fff4dc;
+            --warn: #8a5a00;
+            --radius: 10px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .page { max-width: 1120px; margin: 0 auto; padding: 32px 20px 64px; }
+
+        header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+        h1 { font-size: 34px; line-height: 1.1; margin: 0; font-weight: 700; letter-spacing: -0.02em; }
+        header p { margin: 4px 0 0; color: var(--muted); }
+        .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; background: var(--surface); border: 1px solid var(--line); }
+        .pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+        .pill.on i { background: var(--ok); }
+        .pill.off i { background: var(--danger); }
+
+        .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+        .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+        .panel + .panel { margin-top: 20px; }
+        h2 { font-size: 17px; margin: 0 0 14px; font-weight: 600; }
+
+        label { display: block; font-weight: 500; font-size: 13px; margin-bottom: 4px; }
+        input[type=text], input[type=number], input[type=search] {
+            width: 100%; padding: 9px 11px; font: inherit; color: inherit;
+            border: 1px solid var(--line); border-radius: 7px; background: #fff;
+        }
+        input:focus-visible, button:focus-visible, summary:focus-visible {
+            outline: 2px solid var(--primary); outline-offset: 2px;
+        }
+        .field { margin-bottom: 14px; }
+
+        button {
+            font: inherit; font-weight: 500; cursor: pointer;
+            border: 1px solid var(--line); background: #fff; color: var(--ink);
+            padding: 8px 14px; border-radius: 7px;
+        }
+        button:hover { background: #f4f6f9; }
+        button.primary { background: var(--primary); border-color: var(--primary); color: #fff; width: 100%; padding: 10px 14px; }
+        button.primary:hover { background: var(--primary-dark); }
+        button.small { padding: 5px 10px; font-size: 13px; }
+        button.danger { color: var(--danger); border-color: #e5b9b6; }
+        button.danger:hover { background: var(--danger-soft); }
+        button.danger.armed { background: var(--danger); border-color: var(--danger); color: #fff; }
+        button:disabled { opacity: .6; cursor: not-allowed; }
+
+        .msg { margin: 12px 0 0; padding: 9px 11px; border-radius: 7px; font-size: 13px; display: none; }
+        .msg.show { display: block; }
+        .msg.ok { background: var(--ok-soft); color: var(--ok); }
+        .msg.err { background: var(--danger-soft); color: var(--danger); }
+
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
+        .toolbar .grow { flex: 1 1 180px; }
+        .toolbar .idbox { display: flex; gap: 6px; }
+        .toolbar .idbox input { width: 90px; }
+
+        .tablewrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 13px; font-weight: 600; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+        td { padding: 10px; border-bottom: 1px solid #eaeef2; vertical-align: middle; }
+        tr:last-child td { border-bottom: 0; }
+        td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        td.id { color: var(--muted); font-variant-numeric: tabular-nums; width: 56px; }
+        td.actions { text-align: right; white-space: nowrap; }
+        td.actions button + button { margin-left: 6px; }
+        .empty { padding: 28px 10px; text-align: center; color: var(--muted); }
+        .count { color: var(--muted); font-weight: 400; margin-left: 6px; }
+
+        .log { list-style: none; margin: 0; padding: 0; max-height: 420px; overflow-y: auto; }
+        .log li { border-bottom: 1px solid #eaeef2; }
+        .log li:last-child { border-bottom: 0; }
+        .log details > summary { cursor: pointer; list-style: none; padding: 9px 4px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .log details > summary::-webkit-details-marker { display: none; }
+        .log summary:hover { background: #f7f9fb; }
+        .method { font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 5px; min-width: 62px; text-align: center; }
+        .m-GET { background: #e4ecff; color: var(--primary-dark); }
+        .m-POST { background: var(--ok-soft); color: var(--ok); }
+        .m-DELETE { background: var(--danger-soft); color: var(--danger); }
+        .url { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+        .status { margin-left: auto; font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+        .s-ok { color: var(--ok); }
+        .s-err { color: var(--danger); }
+        .s-none { color: var(--muted); }
+        .time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+        pre { margin: 0 0 10px; padding: 12px; background: #f4f6f9; border-radius: 7px; overflow-x: auto; font-size: 13px; }
+        .detail-label { font-size: 12px; color: var(--muted); font-weight: 600; margin: 4px 0; }
+        .hint { color: var(--muted); font-size: 13px; margin: 0; }
+
+        @media (prefers-reduced-motion: no-preference) {
+            button { transition: background-color .12s; }
+        }
+        .right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .user { color: var(--muted); font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <div>
+            <h1>Produtos</h1>
+            <p>Cadastre, consulte e exclua produtos direto da sua API.</p>
+        </div>
+        <div class="right">
+            <span id="usuario" class="user"></span>
+            <span id="apiStatus" class="pill"><i></i><span>Verificando API</span></span>
+            <button id="sair" type="button" class="small">Sair</button>
+        </div>
+    </header>
+
+    <div class="grid">
+        <aside>
+            <section class="panel">
+                <h2>Novo produto</h2>
+                <div class="field">
+                    <label for="nome">Nome</label>
+                    <input id="nome" type="text" autocomplete="off" placeholder="Ex.: Teclado mecânico">
+                </div>
+                <div class="field">
+                    <label for="preco">Preço (R$)</label>
+                    <input id="preco" type="number" min="0" step="0.01" placeholder="150,00">
+                </div>
+                <button id="salvar" class="primary" type="button">Salvar produto</button>
+                <p id="formMsg" class="msg" role="status"></p>
+            </section>
+        </aside>
+
+        <main>
+            <section class="panel">
+                <h2>Lista de produtos <span id="count" class="count"></span></h2>
+                <div class="toolbar">
+                    <div class="grow">
+                        <label for="filtro">Filtrar por nome</label>
+                        <input id="filtro" type="search" placeholder="Digite para filtrar">
+                    </div>
+                    <div>
+                        <label for="idBusca">Buscar por id</label>
+                        <div class="idbox">
+                            <input id="idBusca" type="number" min="1" placeholder="Id">
+                            <button id="buscarId" type="button">Buscar</button>
+                        </div>
+                    </div>
+                    <button id="recarregar" type="button">Atualizar lista</button>
+                </div>
+                <div class="tablewrap">
+                    <table>
+                        <thead>
+                        <tr><th>Id</th><th>Nome</th><th class="num">Preço</th><th></th></tr>
+                        </thead>
+                        <tbody id="corpo"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Requisições enviadas</h2>
+                <p id="logVazio" class="hint">Nada enviado ainda. Cada chamada à API aparece aqui com status, tempo e resposta.</p>
+                <ul id="log" class="log"></ul>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script>
+    const API = "/produtos";
+    const $ = (s) => document.querySelector(s);
+    const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+    const token = localStorage.getItem("token");
+
+    function lerToken(t) {
+        try {
+            return JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function tokenValido(t) {
+        const p = t && lerToken(t);
+        return !!p && p.exp * 1000 > Date.now();
+    }
+
+    function sair() {
+        localStorage.removeItem("token");
+        location.replace("/login");
+    }
+
+    if (!tokenValido(token)) sair();
+
+    let produtos = [];
+    let seq = 0;
+
+    function el(tag, props, ...filhos) {
+        const e = document.createElement(tag);
+        Object.assign(e, props || {});
+        filhos.forEach((f) => e.append(f));
+        return e;
+    }
+
+    function pretty(texto) {
+        if (!texto) return "(vazio)";
+        try { return JSON.stringify(JSON.parse(texto), null, 2); } catch (_) { return texto; }
+    }
+
+    // Envia a requisição e registra no histórico
+    async function req(method, url, body) {
+        const inicio = performance.now();
+        const entrada = { method, url, body, status: 0, resp: "", hora: new Date(), location: null };
+        try {
+            const opts = { method, headers: { "Authorization": "Bearer " + token } };
+            if (body !== undefined) {
+                opts.headers["Content-Type"] = "application/json";
+                opts.body = JSON.stringify(body);
+            }
+            const r = await fetch(url, opts);
+            if (r.status === 401) sair(); // token vencido ou inválido
+            entrada.status = r.status;
+            entrada.resp = await r.text();
+            entrada.location = r.headers.get("Location");
+        } catch (e) {
+            entrada.resp = "Não foi possível falar com a API: " + e.message;
+        }
+        entrada.ms = Math.round(performance.now() - inicio);
+        entrada.ok = entrada.status >= 200 && entrada.status < 300;
+        registrar(entrada);
+        return entrada;
+    }
+
+    function registrar(e) {
+        $("#logVazio").style.display = "none";
+        const classeStatus = e.status === 0 ? "s-none" : e.ok ? "s-ok" : "s-err";
+        const resumo = el("summary", {},
+            el("span", { className: "method m-" + e.method, textContent: e.method }),
+            el("span", { className: "url", textContent: e.url }),
+            el("span", { className: "status " + classeStatus, textContent: e.status === 0 ? "sem resposta" : e.status }),
+            el("span", { className: "time", textContent: e.ms + " ms · " + e.hora.toLocaleTimeString("pt-BR") })
+        );
+        const detalhes = el("details", {}, resumo);
+        if (e.body !== undefined) {
+            detalhes.append(el("div", { className: "detail-label", textContent: "Corpo enviado" }),
+                el("pre", { textContent: JSON.stringify(e.body, null, 2) }));
+        }
+        if (e.location) {
+            detalhes.append(el("div", { className: "detail-label", textContent: "Header Location" }),
+                el("pre", { textContent: e.location }));
+        }
+        detalhes.append(el("div", { className: "detail-label", textContent: "Resposta" }),
+            el("pre", { textContent: pretty(e.resp) }));
+        const log = $("#log");
+        log.prepend(el("li", {}, detalhes));
+        while (log.children.length > 30) log.lastChild.remove();
+    }
+
+    function mensagem(texto, tipo) {
+        const m = $("#formMsg");
+        m.textContent = texto;
+        m.className = "msg show " + tipo;
+    }
+
+    function statusApi(online) {
+        const p = $("#apiStatus");
+        p.className = "pill " + (online ? "on" : "off");
+        p.lastChild.textContent = online ? "API conectada" : "API fora do ar";
+    }
+
+    // GET /produtos
+    async function carregar() {
+        const r = await req("GET", API);
+        statusApi(r.status !== 0);
+        try {
+            const dados = JSON.parse(r.resp);
+            produtos = Array.isArray(dados) ? dados : [];
+        } catch (_) {
+            produtos = [];
+        }
+        desenhar();
+    }
+
+    function desenhar() {
+        const termo = $("#filtro").value.trim().toLowerCase();
+        const lista = produtos.filter((p) => (p.nome || "").toLowerCase().includes(termo));
+        const corpo = $("#corpo");
+        corpo.replaceChildren();
+
+        $("#count").textContent = produtos.length ? "(" + lista.length + " de " + produtos.length + ")" : "";
+
+        if (!lista.length) {
+            const texto = produtos.length
+                ? "Nenhum produto com esse nome."
+                : "Nenhum produto cadastrado. Preencha o formulário ao lado para criar o primeiro.";
+            const td = el("td", { colSpan: 4, className: "empty", textContent: texto });
+            corpo.append(el("tr", {}, td));
+            return;
+        }
+
+        lista.forEach((p) => {
+            const ver = el("button", { type: "button", className: "small", textContent: "Ver" });
+            ver.addEventListener("click", () => req("GET", API + "/" + p.id));
+
+            const excluir = el("button", { type: "button", className: "small danger", textContent: "Excluir" });
+            let timer;
+            excluir.addEventListener("click", async () => {
+                if (!excluir.classList.contains("armed")) {
+                    excluir.classList.add("armed");
+                    excluir.textContent = "Confirmar";
+                    timer = setTimeout(() => {
+                        excluir.classList.remove("armed");
+                        excluir.textContent = "Excluir";
+                    }, 3000);
+                    return;
+                }
+                clearTimeout(timer);
+                excluir.disabled = true;
+                const r = await req("DELETE", API + "/" + p.id);
+                if (r.ok) await carregar();
+                else excluir.disabled = false;
+            });
+
+            corpo.append(el("tr", {},
+                el("td", { className: "id", textContent: p.id }),
+                el("td", { textContent: p.nome }),
+                el("td", { className: "num", textContent: typeof p.preco === "number" ? brl.format(p.preco) : "-" }),
+                el("td", { className: "actions" }, ver, excluir)
+            ));
+        });
+    }
+
+    // POST /produtos
+    async function salvar() {
+        const nome = $("#nome").value.trim();
+        const preco = parseFloat($("#preco").value);
+        if (!nome) { mensagem("Informe o nome do produto.", "err"); $("#nome").focus(); return; }
+        if (Number.isNaN(preco) || preco < 0) { mensagem("Informe um preço válido, maior ou igual a zero.", "err"); $("#preco").focus(); return; }
+
+        const botao = $("#salvar");
+        botao.disabled = true;
+        const r = await req("POST", API, { nome, preco });
+        botao.disabled = false;
+
+        if (r.ok) {
+            mensagem("Produto salvo.", "ok");
+            $("#nome").value = "";
+            $("#preco").value = "";
+            $("#nome").focus();
+            await carregar();
+        } else {
+            let texto = "Não foi possível salvar (status " + (r.status || "sem resposta") + ").";
+            try {
+                const erro = JSON.parse(r.resp);
+                texto = (erro.campos && Object.values(erro.campos)[0]) || erro.mensagem || texto;
+            } catch (_) {}
+            mensagem(texto, "err");
+        }
+    }
+
+    // GET /produtos/{id}
+    function buscarPorId() {
+        const id = $("#idBusca").value;
+        if (!id) { $("#idBusca").focus(); return; }
+        req("GET", API + "/" + id);
+    }
+
+    $("#salvar").addEventListener("click", salvar);
+    $("#preco").addEventListener("keydown", (e) => { if (e.key === "Enter") salvar(); });
+    $("#nome").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#preco").focus(); });
+    $("#filtro").addEventListener("input", desenhar);
+    $("#recarregar").addEventListener("click", carregar);
+    $("#buscarId").addEventListener("click", buscarPorId);
+    $("#idBusca").addEventListener("keydown", (e) => { if (e.key === "Enter") buscarPorId(); });
+
+    $("#sair").addEventListener("click", sair);
+    if (tokenValido(token)) {
+        $("#usuario").textContent = lerToken(token).sub;
+        carregar();
+    }
+</script>
+</body>
+</html>

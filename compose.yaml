@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  banco:
+    image: postgres:16
+    container_name: springaws-db
+    environment:
+      POSTGRES_DB: springaws
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: segredo
+    ports:
+      - "5432:5432"
+    volumes:
+      - springaws-dados:/var/lib/postgresql/data
+    networks:
+      - rede-app
+
+  app:
+    build: .
+    container_name: springaws-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://banco:5432/springaws
+      - SPRING_DATASOURCE_USERNAME=app
+      - SPRING_DATASOURCE_PASSWORD=segredo
+      - DB_PASSWORD=segredo
+    depends_on:
+      - banco
+    networks:
+      - rede-app
+
+volumes:
+  springaws-dados:
+
+networks:
+  rede-app:
+    driver: bridge

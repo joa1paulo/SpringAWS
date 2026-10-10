@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Entrar | Produtos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #edf0f4;
+            --surface: #ffffff;
+            --ink: #162029;
+            --muted: #5b6877;
+            --line: #d5dbe3;
+            --primary: #1f4fd8;
+            --primary-dark: #173ba6;
+            --danger: #b93228;
+            --danger-soft: #fbeceb;
+            --radius: 10px;
+        }
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            padding: 24px 16px;
+        }
+        .wrap { width: 100%; max-width: 400px; }
+        h1 { font-size: 34px; line-height: 1.1; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.02em; }
+        .sub { margin: 0 0 22px; color: var(--muted); }
+
+        .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+
+        .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--bg); border-radius: 8px; margin-bottom: 20px; }
+        .tabs button {
+            font: inherit; font-weight: 500; cursor: pointer; border: 0; background: transparent;
+            color: var(--muted); padding: 8px 10px; border-radius: 6px;
+        }
+        .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(22, 32, 41, .12); }
+
+        label { display: block; font-weight: 500; font-size: 13px; margin-bottom: 4px; }
+        input {
+            width: 100%; padding: 10px 11px; font: inherit; color: inherit;
+            border: 1px solid var(--line); border-radius: 7px; background: #fff;
+        }
+        input:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .field { margin-bottom: 14px; }
+        .dica { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+        .enviar {
+            width: 100%; font: inherit; font-weight: 500; cursor: pointer;
+            background: var(--primary); color: #fff; border: 1px solid var(--primary);
+            padding: 11px 14px; border-radius: 7px;
+        }
+        .enviar:hover { background: var(--primary-dark); }
+        .enviar:disabled { opacity: .6; cursor: not-allowed; }
+
+        .msg { margin: 0 0 14px; padding: 9px 11px; border-radius: 7px; font-size: 13px; background: var(--danger-soft); color: var(--danger); }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .tabs button, .enviar { transition: background-color .12s; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Produtos</h1>
+    <p class="sub">Entre na sua conta para acessar o painel.</p>
+
+    <div class="card">
+        <div class="tabs" role="tablist">
+            <button id="tabLogin" type="button" role="tab" aria-selected="true">Entrar</button>
+            <button id="tabCadastro" type="button" role="tab" aria-selected="false">Criar conta</button>
+        </div>
+
+        <p id="msg" class="msg" role="alert" hidden></p>
+
+        <form id="form" novalidate>
+            <div id="campoNome" class="field" hidden>
+                <label for="nome">Nome</label>
+                <input id="nome" type="text" autocomplete="name">
+            </div>
+            <div class="field">
+                <label for="email">E-mail</label>
+                <input id="email" type="email" autocomplete="email" placeholder="voce@email.com">
+            </div>
+            <div class="field">
+                <label for="senha">Senha</label>
+                <input id="senha" type="password" autocomplete="current-password">
+                <p id="dicaSenha" class="dica" hidden>Use pelo menos 8 caracteres.</p>
+            </div>
+            <button id="enviar" class="enviar" type="submit">Entrar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const $ = (s) => document.querySelector(s);
+    let modo = "login";
+
+    function tokenValido(t) {
+        if (!t) return false;
+        try {
+            const p = JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+            return p.exp * 1000 > Date.now();
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // Quem já tem um token válido vai direto para o painel
+    if (tokenValido(localStorage.getItem("token"))) location.replace("/");
+
+    function mensagem(texto) {
+        const m = $("#msg");
+        m.textContent = texto || "";
+        m.hidden = !texto;
+    }
+
+    function textoErro(r, padrao) {
+        if (r.status === 0) return "Não foi possível falar com o servidor.";
+        const campos = r.dados && r.dados.campos;
+        if (campos) return Object.values(campos)[0]; // primeira mensagem de validação
+        return (r.dados && r.dados.mensagem) || padrao;
+    }
+
+    function trocarModo(novo) {
+        modo = novo;
+        const login = novo === "login";
+        $("#tabLogin").setAttribute("aria-selected", String(login));
+        $("#tabCadastro").setAttribute("aria-selected", String(!login));
+        $("#campoNome").hidden = login;
+        $("#dicaSenha").hidden = login;
+        $("#enviar").textContent = login ? "Entrar" : "Criar conta";
+        $("#senha").autocomplete = login ? "current-password" : "new-password";
+        mensagem("");
+    }
+
+    async function post(caminho, corpo) {
+        try {
+            const r = await fetch("/auth" + caminho, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(corpo)
+            });
+            let dados = null;
+            try { dados = await r.json(); } catch (_) {}
+            return { status: r.status, ok: r.ok, dados };
+        } catch (_) {
+            return { status: 0, ok: false, dados: null };
+        }
+    }
+
+    async function entrar(email, senha) {
+        const r = await post("/login", { email, senha });
+        if (r.ok && r.dados && r.dados.token) {
+            localStorage.setItem("token", r.dados.token);
+            location.replace("/");
+            return true;
+        }
+        mensagem(textoErro(r, "Algo deu errado (status " + r.status + ")."));
+        return false;
+    }
+
+    async function cadastrar(nome, email, senha) {
+        const r = await post("/register", { nome, email, senha });
+        if (r.ok) return entrar(email, senha); // depois de criar a conta, já entra
+        mensagem(textoErro(r, "Não foi possível criar a conta (status " + r.status + ")."));
+        return false;
+    }
+
+    $("#form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        mensagem("");
+
+        const nome = $("#nome").value.trim();
+        const email = $("#email").value.trim();
+        const senha = $("#senha").value;
+
+        if (modo === "cadastro" && !nome) { mensagem("Informe o seu nome."); $("#nome").focus(); return; }
+        if (!email || !email.includes("@")) { mensagem("Informe um e-mail válido."); $("#email").focus(); return; }
+        if (!senha) { mensagem("Informe a senha."); $("#senha").focus(); return; }
+        if (modo === "cadastro" && senha.length < 8) { mensagem("A senha precisa ter pelo menos 8 caracteres."); $("#senha").focus(); return; }
+
+        const botao = $("#enviar");
+        botao.disabled = true;
+        const ok = modo === "login" ? await entrar(email, senha) : await cadastrar(nome, email, senha);
+        if (!ok) botao.disabled = false;
+    });
+
+    $("#tabLogin").addEventListener("click", () => trocarModo("login"));
+    $("#tabCadastro").addEventListener("click", () => trocarModo("cadastro"));
+</script>
+</body>
+</html>

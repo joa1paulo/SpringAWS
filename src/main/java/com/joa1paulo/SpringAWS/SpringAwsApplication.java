@@ -1,0 +1,13 @@
+package com.joa1paulo.SpringAWS;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class SpringAwsApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringAwsApplication.class, args);
+	}
+
+}
