@@ -17,7 +17,7 @@ Java, Spring Boot, Spring Security, Spring Data JPA, PostgreSQL, Flyway, Docker
 
 ## Como rodar localmente
 ```bash
-git clone [<https://github.com/joa1paulo/SpringAWS>](https://github.com/joa1paulo/SpringAWS)
+git clone https://github.com/joa1paulo/SpringAWS
 cd SpringAWS
 docker compose up
 ```
