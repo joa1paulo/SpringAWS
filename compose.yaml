@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: springaws
       POSTGRES_USER: app
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no ambiente ou no arquivo .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app}
     ports:
       - "5432:5432"
     volumes:
@@ -27,8 +27,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://banco:5432/springaws
       SPRING_DATASOURCE_USERNAME: app
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no ambiente ou no arquivo .env}
-      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no ambiente ou no arquivo .env}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-app}
+      JWT_SECRET: ${JWT_SECRET:-chave-de-desenvolvimento-troque-em-producao-1234567890}
     depends_on:
       banco:
         condition: service_healthy

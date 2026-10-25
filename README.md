@@ -16,12 +16,18 @@ API REST com Java e Spring Boot para gerenciamento de produtos, com autenticaç�
 Java, Spring Boot, Spring Security, Spring Data JPA, PostgreSQL, Flyway, Docker
 
 ## Como rodar localmente
+
+É necessário ter o Docker com Docker Compose instalado. Na raiz do projeto, execute:
+
 ```bash
 git clone https://github.com/joa1paulo/SpringAWS
 cd SpringAWS
-docker compose up
+docker compose up --build
 ```
-Acesse: http://localhost:8080
+
+O Compose compila a aplicação com Maven dentro do Docker, cria o banco `springaws` no PostgreSQL e inicia a API na porta `8080`. O banco fica disponível na porta `5432`. Acesse a aplicação em http://localhost:8080.
+
+Para encerrar os serviços, pressione `Ctrl+C` e execute `docker compose down`. Os dados do banco são mantidos no volume do Docker entre inicializações. As credenciais padrão do Compose são apenas para desenvolvimento local; configure `DB_PASSWORD` e `JWT_SECRET` antes de usar em outros ambientes.
 
 ## Endpoints principais
 | Método | Rota | Descrição |
