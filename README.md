@@ -29,6 +29,15 @@ O Compose compila a aplicação com Maven dentro do Docker, cria o banco `spring
 
 Para encerrar os serviços, pressione `Ctrl+C` e execute `docker compose down`. Os dados do banco são mantidos no volume do Docker entre inicializações. As credenciais padrão do Compose são apenas para desenvolvimento local; configure `DB_PASSWORD` e `JWT_SECRET` antes de usar em outros ambientes.
 
+Se a API falhar com `password authentication failed for user "app"`, o volume do PostgreSQL pode ter sido criado anteriormente com outra senha. Se não precisar dos dados locais, recrie o banco e inicie os serviços:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+`docker compose down -v` apaga os dados do banco armazenados no volume. Para preservá-los, configure `DB_PASSWORD` com a senha usada quando o volume foi criado, tanto para o PostgreSQL quanto para a aplicação.
+
 ## Endpoints principais
 | Método | Rota | Descrição |
 |--------|------|-----------|
