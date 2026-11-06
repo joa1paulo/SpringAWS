@@ -3,6 +3,7 @@ package com.joa1paulo.SpringAWS.Config;
 import com.joa1paulo.SpringAWS.Service.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,7 +27,8 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/auth/**", "/error").permitAll()  // <- rotas públicas
+                        .requestMatchers("/", "/login", "/auth/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
                         .anyRequest().authenticated())                                                         // <- todo o resto exige token
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

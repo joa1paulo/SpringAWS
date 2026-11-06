@@ -217,6 +217,10 @@
 
     if (!tokenValido(token)) sair();
 
+    // Dados do usuário logado (vindos do token) e se ele é administrador
+    const dadosToken = lerToken(token);
+    const ehAdmin = !!dadosToken && dadosToken.perfil === "ADMIN";
+
     let produtos = [];
     let seq = 0;
 
@@ -346,11 +350,15 @@
                 else excluir.disabled = false;
             });
 
+            // Só o ADMIN vê o botão Excluir (quem barra de verdade é o servidor)
+            const acoes = el("td", { className: "actions" }, ver);
+            if (ehAdmin) acoes.append(excluir);
+
             corpo.append(el("tr", {},
                 el("td", { className: "id", textContent: p.id }),
                 el("td", { textContent: p.nome }),
                 el("td", { className: "num", textContent: typeof p.preco === "number" ? brl.format(p.preco) : "-" }),
-                el("td", { className: "actions" }, ver, excluir)
+                acoes
             ));
         });
     }
@@ -400,7 +408,7 @@
 
     $("#sair").addEventListener("click", sair);
     if (tokenValido(token)) {
-        $("#usuario").textContent = lerToken(token).sub;
+        $("#usuario").textContent = dadosToken.sub + " (" + (dadosToken.perfil || "USER") + ")";
         carregar();
     }
 </script>

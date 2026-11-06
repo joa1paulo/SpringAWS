@@ -1,6 +1,7 @@
 package com.joa1paulo.SpringAWS.Service;
 
 import com.joa1paulo.SpringAWS.Model.Usuario;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -30,23 +31,30 @@ public class TokenService {
         Instant agora = Instant.now();
         return Jwts.builder()
                 .subject(usuario.getEmail())
+                .claim("perfil", usuario.getPerfil().name())
                 .issuedAt(Date.from(agora))
                 .expiration(Date.from(agora.plus(expiracaoMinutos, ChronoUnit.MINUTES)))
                 .signWith(chave)
                 .compact();
     }
 
-    public Optional<String> extrairEmail(String token) {
+    public record DadosToken(String email, String perfil) {}
+
+    public Optional<DadosToken> lerToken(String token) {
         try {
-            String email = Jwts.parser()
+            Claims claims = Jwts.parser()
                     .verifyWith(chave)
                     .build()
                     .parseSignedClaims(token)
-                    .getPayload()
-                    .getSubject();
-            return Optional.ofNullable(email);
+                    .getPayload();
+
+            String email = claims.getSubject();
+            String perfil = claims.get("perfil", String.class);
+            if (email == null || perfil == null) return Optional.empty();
+
+            return Optional.of(new DadosToken(email, perfil));
         } catch (JwtException | IllegalArgumentException e) {
-            return Optional.empty(); // assinatura inválida, token expirado ou malformado
+            return Optional.empty();
         }
     }
 }
