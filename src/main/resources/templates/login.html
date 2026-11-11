@@ -18,6 +18,11 @@
             --primary-dark: #173ba6;
             --danger: #b93228;
             --danger-soft: #fbeceb;
+            --ok: #1b7a4b;
+            --ok-soft: #e6f4ec;
+            --warn: #8a5a00;
+            --warn-soft: #fff4dc;
+            --warn-line: #e8cf9a;
             --radius: 10px;
         }
         * { box-sizing: border-box; }
@@ -34,9 +39,29 @@
             line-height: 1.5;
             padding: 24px 16px;
         }
-        .wrap { width: 100%; max-width: 400px; }
+        .wrap { width: 100%; max-width: 420px; }
         h1 { font-size: 34px; line-height: 1.1; margin: 0 0 6px; font-weight: 700; letter-spacing: -0.02em; }
-        .sub { margin: 0 0 22px; color: var(--muted); }
+        .sub { margin: 0 0 18px; color: var(--muted); }
+
+        /* Contas de teste */
+        .demo { background: var(--warn-soft); border: 1px solid var(--warn-line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+        .demo h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--warn); }
+        .demo .intro { margin: 2px 0 12px; font-size: 13px; color: var(--warn); }
+        .conta { background: var(--surface); border: 1px solid var(--warn-line); border-radius: 8px; padding: 10px 12px; }
+        .conta + .conta { margin-top: 8px; }
+        .conta-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+        .perfil { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 5px; }
+        .perfil.user { background: #e4ecff; color: var(--primary-dark); }
+        .perfil.admin { background: var(--danger-soft); color: var(--danger); }
+        .conta-desc { font-size: 12px; color: var(--muted); }
+        .linha { display: flex; gap: 8px; align-items: baseline; font-size: 13px; }
+        .linha span { color: var(--muted); min-width: 48px; }
+        .linha code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; font-weight: 600; word-break: break-all; }
+        .conta button {
+            width: 100%; margin-top: 10px; font: inherit; font-weight: 500; font-size: 13px; cursor: pointer;
+            background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; padding: 7px 10px;
+        }
+        .conta button:hover { background: #f4f6f9; }
 
         .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
 
@@ -67,7 +92,7 @@
         .msg { margin: 0 0 14px; padding: 9px 11px; border-radius: 7px; font-size: 13px; background: var(--danger-soft); color: var(--danger); }
 
         @media (prefers-reduced-motion: no-preference) {
-            .tabs button, .enviar { transition: background-color .12s; }
+            .tabs button, .enviar, .conta button { transition: background-color .12s; }
         }
     </style>
 </head>
@@ -75,6 +100,31 @@
 <div class="wrap">
     <h1>Produtos</h1>
     <p class="sub">Entre na sua conta para acessar o painel.</p>
+
+    <section class="demo" aria-labelledby="demoTitulo">
+        <h2 id="demoTitulo">Ambiente de teste: contas prontas para usar</h2>
+        <p class="intro">Este projeto é uma demonstração. Entre com uma das contas abaixo.</p>
+
+        <div class="conta">
+            <div class="conta-topo">
+                <span class="perfil user">USER</span>
+                <span class="conta-desc">Lista, consulta e cadastra produtos</span>
+            </div>
+            <div class="linha"><span>E-mail</span><code>teste@teste.com</code></div>
+            <div class="linha"><span>Senha</span><code>123456teste</code></div>
+            <button type="button" data-email="teste@teste.com" data-senha="123456teste">Entrar como USER</button>
+        </div>
+
+        <div class="conta">
+            <div class="conta-topo">
+                <span class="perfil admin">ADMIN</span>
+                <span class="conta-desc">Tudo do USER, e também exclui produtos</span>
+            </div>
+            <div class="linha"><span>E-mail</span><code>admin@admin.com</code></div>
+            <div class="linha"><span>Senha</span><code>123456admin</code></div>
+            <button type="button" data-email="admin@admin.com" data-senha="123456admin">Entrar como ADMIN</button>
+        </div>
+    </section>
 
     <div class="card">
         <div class="tabs" role="tablist">
@@ -167,7 +217,7 @@
             location.replace("/");
             return true;
         }
-        mensagem(textoErro(r, "Algo deu errado (status " + r.status + ")."));
+        mensagem(textoErro(r, "Algo deu errado (status " + r.status + "). Tente de novo."));
         return false;
     }
 
@@ -195,6 +245,16 @@
         botao.disabled = true;
         const ok = modo === "login" ? await entrar(email, senha) : await cadastrar(nome, email, senha);
         if (!ok) botao.disabled = false;
+    });
+
+    // Botões das contas de teste: preenchem o formulário e entram
+    document.querySelectorAll(".conta button").forEach((b) => {
+        b.addEventListener("click", () => {
+            trocarModo("login");
+            $("#email").value = b.dataset.email;
+            $("#senha").value = b.dataset.senha;
+            $("#form").requestSubmit();
+        });
     });
 
     $("#tabLogin").addEventListener("click", () => trocarModo("login"));
